@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<script>
+  let testParams = {
+    1: ["loaded", "*"],
+    2: ["loaded"],
+    3: ["loaded", "http://{{host}}:{{ports[http][0]}}"],
+    4: ["loaded", "http://{{hosts[alt][www]}}:{{ports[http][0]}}"]
+  };
+  let testNumber = (new URL(window.location)).searchParams.get("test");
+  window.portalHost.postMessage.apply(window.portalHost, testParams[testNumber]);
+</script>

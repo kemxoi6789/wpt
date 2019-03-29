@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<title>Test postMessage on PortalHost</title>
+<meta name="timeout" content="long">
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+<body>
+  <script>
+    async function createPortalAndReceiveMessage(portalSrc) {
+      var portal = document.createElement("portal");
+      portal.src = portalSrc;
+      var receivedMessagePromise = new Promise((resolve, reject) => {
+        portal.addEventListener("message", e => {
+          resolve(e);
+        });
+      });
+      document.body.appendChild(portal);
+      return receivedMessagePromise;
+    }
+
+    const crossOriginUrl = "http://{{hosts[alt][www]}}:{{ports[http][0]}}/portals/resources/portal-host-post-message.sub.html";
+
+    promise_test(async () => {
+      var {data, origin} = await createPortalAndReceiveMessage(
+          "resources/portal-host-post-message.sub.html?test=1");
+      assert_equals(data, "loaded");
+      assert_equals(origin, "http://{{host}}:{{ports[http][0]}}");
+    }, "Message received after postMessage from portal host");
+
+    promise_test(async () => {
+      var {data, origin} = await createPortalAndReceiveMessage(`${crossOriginUrl}?test=1`);
+      assert_equals(data, "loaded");
+      assert_equals(origin, "http://{{hosts[alt][www]}}:{{ports[http][0]}}");
+    }, "Message received after postMessage from portal host in cross-origin-portal");
+
+    promise_test(async () => {
+      var {data, origin} = await createPortalAndReceiveMessage(
+          "resources/portal-host-post-message.sub.html?test=2");
+      assert_equals(data, "loaded");
+    }, "Message received from same-origin portal host with no target origin specified");
+
+    promise_test(async () => {
+      var {data, origin} = await createPortalAndReceiveMessage(`${crossOriginUrl}?test=3`);
+      assert_equals(data, "loaded");
+    }, "Message received from cross-origin portal host with target origin correctly specified");
+
+    promise_test(async () => {
+       var receiveMessage = new Promise((resolve, reject) => {
+         var bc = new BroadcastChannel("portal-host-post-message-after-activate");
+         bc.onmessage = e => { resolve(e); };
+       });
+       const portalUrl = encodeURIComponent(
+          "portal-host-post-message-after-activate.html");
+       window.open(`resources/portal-embed-and-activate.html?url=${portalUrl}`);
+       var message = await receiveMessage;
+       assert_equals(message.data, "InvalidStateError");
+    });
+
+    promise_test(async t => {
+      return new Promise((resolve, reject) => {
+        createPortalAndReceiveMessage(
+            "resources/portal-host-post-message.sub.html?test=4")
+            .then(() => { reject("message delivered"); });
+        t.step_timeout(resolve, 2000);
+      });
+    }, "Message should not be received from portal host with target set to different origin");
+
+    promise_test(async t => {
+      return new Promise((resolve, reject) => {
+        createPortalAndReceiveMessage(`${crossOriginUrl}?test=2`).then(() => {
+          reject("message delivered");
+        });
+        t.step_timeout(resolve, 2000);
+      });
+    }, "Message should not be received cross origin-portal host with no target origin set");
+  </script>
+</body>

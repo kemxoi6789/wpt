@@ -5,9 +5,7 @@
     document.body.appendChild(portal);
 
     if (portal instanceof HTMLPortalElement) {
-      var bc_adopted = new BroadcastChannel("portal-adopted");
-      bc_adopted.postMessage("adopted");
-      bc_adopted.close();
+      portal.postMessage("adopted", "*");
     }
   }
 

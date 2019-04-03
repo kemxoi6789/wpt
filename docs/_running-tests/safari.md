@@ -17,7 +17,7 @@ for Safari and Safari Technology Preview, in which case only step is needed.
     * `defaults write com.apple.SafariTechnologyPreview ExperimentalServerTimingEnabled 1`
 
   * Trust the certificate:
-    `security add-trusted-cert -k "$(security default-keychain | cut -d\" -f2)" tools/certs/cacert.pem`
+    * `security add-trusted-cert -k "$(security default-keychain | cut -d\" -f2)" tools/certs/cacert.pem`
 
   * Set `no_proxy='*'` in your environment. This is a
     workaround for a known

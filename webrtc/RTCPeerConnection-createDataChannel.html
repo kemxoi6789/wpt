@@ -413,9 +413,10 @@ test(t => {
 
 test(() => {
   const pc = new RTCPeerConnection;
-  const channel = pc.createDataChannel('', { negotiated: true });
+  t.add_cleanup(() => pc.close());
+  const channel = pc.createDataChannel('', { negotiated: true, id: 42 });
   assert_equals(channel.negotiated, true);
-}, 'createDataChannel with negotiated true should succeed');
+}, 'createDataChannel with negotiated true and id should succeed');
 
 test((t) => {
   const pc = new RTCPeerConnection();
